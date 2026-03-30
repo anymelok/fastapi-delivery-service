@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vibe UI</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 0 20px;
+        line-height: 1.6;
+      }
+      section {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 10px;
+        overflow-x: auto;
+        border-radius: 4px;
+      }
+      button {
+        cursor: pointer;
+        padding: 5px 10px;
+      }
+      input,
+      select {
+        margin: 5px 0;
+        display: block;
+        width: 100%;
+        max-width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h3>1. Регистрация посылки</h3>
+      <input type="text" id="p_name" placeholder="Название" />
+      <input type="number" id="p_weight" placeholder="Вес" />
+      <select id="p_type"></select>
+      <input type="number" id="p_price" placeholder="Стоимость ($)" />
+      <button onclick="register()">Отправить</button>
+    </section>
+
+    <section>
+      <h3>2. Мои посылки</h3>
+      <button onclick="listParcels()">Обновить список</button>
+      <div id="parcels_list"></div>
+    </section>
+
+    <section>
+      <h3>3. Отладка</h3>
+      <button onclick="triggerCalc()" style="background: #ffe0e0">
+        Запустить расчет стоимости (задача)
+      </button>
+    </section>
+
+    <section>
+      <h3>Результат последнего запроса (JSON):</h3>
+      <pre id="json_output">Тут будет ответ от API...</pre>
+    </section>
+
+    <script>
+      const out = document.getElementById("json_output");
+
+      // Загрузка типов при старте
+      async function loadTypes() {
+        const r = await fetch("/parcels/types");
+        const types = await r.json();
+        const select = document.getElementById("p_type");
+        types.forEach((t) => {
+          let opt = document.createElement("option");
+          opt.value = t.id;
+          opt.innerHTML = t.name;
+          select.appendChild(opt);
+        });
+      }
+
+      async function register() {
+        const body = {
+          name: document.getElementById("p_name").value,
+          weight: parseFloat(document.getElementById("p_weight").value),
+          type_id: parseInt(document.getElementById("p_type").value),
+          price_usd: parseFloat(document.getElementById("p_price").value),
+        };
+        const r = await fetch("/parcels/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const res = await r.json();
+        out.innerHTML = JSON.stringify(res, null, 2);
+      }
+
+      async function listParcels() {
+        const r = await fetch("/parcels/");
+        const res = await r.json();
+        out.innerHTML = JSON.stringify(res, null, 2);
+      }
+
+      async function triggerCalc() {
+        const r = await fetch("/parcels/tasks/run-calculation", {
+          method: "POST",
+        });
+        const res = await r.json();
+        out.innerHTML = JSON.stringify(res, null, 2);
+      }
+
+      loadTypes();
+    </script>
+  </body>
+</html>
