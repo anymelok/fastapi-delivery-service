@@ -19,6 +19,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: delivery_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
 
   app:
     build: .

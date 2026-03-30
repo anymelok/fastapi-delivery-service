@@ -30,16 +30,18 @@ jobs:
           echo "DB_ROOT_PASS=password" >> .env
           echo "DB_PASS=password" >> .env
 
-      - name: Start Services (DB & Redis)
+      - name: Start Database & Redis
+        run: docker compose up -d db redis
+
+      - name: Wait for MySQL
         run: |
-          docker compose up -d db redis
-          until [ "`docker inspect -f {{.State.Health.Status}} delivery_mysql`"=="healthy" ]; do
+          until[ "`docker inspect -f {{.State.Health.Status}} delivery_mysql`" == "healthy" ]; do
             echo "Waiting for MySQL..."
             sleep 3
           done
 
-      - name: Run Quality Gate (make check)
+      - name: Run checks (Ruff, Mypy, etc)
         run: make check
 
-      - name: Run Tests (make test)
+      - name: Run tests
         run: make test

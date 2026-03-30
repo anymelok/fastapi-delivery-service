@@ -85,14 +85,13 @@ raw:
 	uv run radon raw $(PY_SRCS)
 
 test:
-	@echo "Подготовка тестовой базы данных и выдача прав..."
+	@echo "Подготовка тестовой базы данных..."
 	docker exec delivery_mysql mysql -uroot -p"$(DB_ROOT_PASS)" -e \
 		"CREATE DATABASE IF NOT EXISTS delivery_db_test; \
 		GRANT ALL PRIVILEGES ON delivery_db_test.* TO '$(DB_USER)'@'%'; \
 		FLUSH PRIVILEGES;"
-	@echo "Запуск тестов с проверкой покрытия..."
-	docker compose run --rm -e TESTING=1 app uv run pytest -v --cov=src tests/
-
+	@echo "Запуск тестов..."
+	TESTING=1 DB_HOST=127.0.0.1 REDIS_HOST=127.0.0.1 uv run pytest -v --cov=src tests/
 
 # ===============================
 # Комплексные цели
