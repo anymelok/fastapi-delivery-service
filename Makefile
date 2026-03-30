@@ -91,7 +91,7 @@ test:
 		GRANT ALL PRIVILEGES ON delivery_db_test.* TO '$(DB_USER)'@'%'; \
 		FLUSH PRIVILEGES;"
 	@echo "Запуск тестов с проверкой покрытия..."
-	TESTING=1 uv run pytest -v --cov=src tests/
+	docker compose run --rm -e TESTING=1 app uv run pytest -v --cov=src tests/
 
 
 # ===============================

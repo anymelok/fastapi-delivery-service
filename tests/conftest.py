@@ -1,6 +1,8 @@
 import pytest
 import os
 
+from unittest.mock import patch
+
 # Устанавливаем TESTING=1 до всех импортов
 os.environ['TESTING'] = '1'
 
@@ -56,9 +58,14 @@ async def setup_db(engine):
     await close_all_sessions()
 
 
+@pytest.fixture(autouse=True)
+def mock_external_api():
+    with patch('src.services.parcels.get_usd_rate', return_value=100.0):
+        yield
+
+
 @pytest.fixture
 async def ac():
-    # Больше не нужно переопределять get_session вручную через dependency_overrides,
     # так как мы подменили сам session_maker глобально.
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url='http://test'
