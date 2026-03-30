@@ -35,7 +35,7 @@ jobs:
 
       - name: Wait for MySQL
         run: |
-          until[ "`docker inspect -f {{.State.Health.Status}} delivery_mysql`" == "healthy" ]; do
+          until[ "$(docker inspect -f '{{.State.Health.Status}}' delivery_mysql)" == "healthy" ]; do
             echo "Waiting for MySQL..."
             sleep 3
           done
