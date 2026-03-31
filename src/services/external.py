@@ -19,7 +19,7 @@ async def get_usd_rate():
 
     try:
         async with httpx.AsyncClient() as client:
-            resp = await client.get("https://www.cbr-xml-daily.ru/daily_json.js")
+            resp = await client.get(settings.USD_RATE_SOURCE)
             data = resp.json()
             rate = data["Valute"]["USD"]["Value"]
             await r.set("usd_rate", rate, ex=3600)
@@ -28,7 +28,9 @@ async def get_usd_rate():
     except (httpx.HTTPError, KeyError) as e:
         logger.error(f"External API error. get_usd_rate task failed: {e}")
         raise ExternalServiceException(
-            f"During getting usd_rate exception occured: {e}"
+            message=f"During getting usd_rate exception occured: {e}",
+            service_name=settings.USD_RATE_SOURCE,
+            status_code=500,
         )
 
     finally:
