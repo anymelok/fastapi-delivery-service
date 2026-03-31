@@ -12,6 +12,6 @@ logs/
 
 # Virtual environments
 .venv
-
+.python-version
 .env
 .coverage
