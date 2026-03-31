@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  quality-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Setup environment
+        run: |
+          cp .env.example .env
+          echo "DB_ROOT_PASS=password" >> .env
+          echo "DB_PASS=password" >> .env
+
+      - name: Start Database & Redis
+        run: docker compose up -d db redis
+
+      - name: Wait for MySQL
+        run: |
+          until [ "$(docker inspect -f '{{.State.Health.Status}}' delivery_mysql)" == "healthy" ]; do
+            echo "Waiting for MySQL..."
+            sleep 3
+          done
+
+      - name: Run checks (Ruff, Mypy, etc)
+        run: make check
+
+      - name: Run tests
+        run: make test
